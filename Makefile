@@ -14,4 +14,4 @@ lint:
 # Run unit tests
 test:
 	@echo "Running unit tests..."
-	docker-compose run --rm app sh -c "python manage.py test"
+	docker-compose run --rm app sh -c "python manage.py test && flake8"
