@@ -33,3 +33,14 @@ class AdminSiteTests(TestCase):
         res = self.client.get(url)
 
         self.assertEqual(res.status_code, 200)
+
+    def test_last_login_field_is_read_only(self):
+        """Test that the last_login field is read-only in admin"""
+        url = reverse("admin:core_user_change", args=[self.user.id])
+
+        res = self.client.get(url)
+
+        # Check that the last_login field is not editable
+        self.assertContains(res, 'Last login:')
+        self.assertNotContains(res, 'id="id_last_login_0"')
+        self.assertNotContains(res, 'id="id_last_login_1"')
