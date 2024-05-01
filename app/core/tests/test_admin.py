@@ -44,3 +44,10 @@ class AdminSiteTests(TestCase):
         self.assertContains(res, 'Last login:')
         self.assertNotContains(res, 'id="id_last_login_0"')
         self.assertNotContains(res, 'id="id_last_login_1"')
+
+    def test_create_user_page(self):
+        """Test the create user page works"""
+        url = reverse("admin:core_user_add")
+        res = self.client.get(url)
+
+        self.assertEqual(res.status_code, 200)
