@@ -1,4 +1,4 @@
-.PHONY: help lint test makemigrations migrate
+.PHONY: help lint test makemigrations migrate startapp
 
 # Display callable targets to the user
 help:
@@ -29,3 +29,9 @@ migrate:
 	@echo "Applying database migrations..."
 	docker-compose run --rm app sh -c "python manage.py migrate"
 	@echo "Database migration completed successfully."
+
+# The 'startapp' command that takes an app name as an argument. Used as 'make startapp name='
+startapp:
+	@echo "Creating a new Django app named $(name)..."
+	docker-compose run --rm app sh -c "python manage.py startapp $(name)"
+	@echo "App $(name) created successfully."
