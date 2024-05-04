@@ -33,6 +33,11 @@ def create_project(user, **params):
     return project
 
 
+def create_user(**params):
+    """Create and return a new user."""
+    return get_user_model().objects.create_user(**params)
+
+
 class PublicProjectApiTests(TestCase):
     """Test unauthenticated API requests."""
 
@@ -51,10 +56,8 @@ class PrivateProjectApiTests(TestCase):
 
     def setUp(self):
         self.client = APIClient()
-        self.user = get_user_model().objects.create_user(
-            'test@example.com',
-            'testpass123',
-        )
+        self.user = create_user(email='user@example.com',
+                                password='testpass123')
         self.client.force_authenticate(self.user)
 
     def test_retrieve_projects(self):
@@ -71,10 +74,8 @@ class PrivateProjectApiTests(TestCase):
 
     def test_projects_limited_to_user(self):
         """Test list of projects is limited to authenticated user."""
-        other_user = get_user_model().objects.create_user(
-            'other@example.com',
-            'password123',
-        )
+        other_user = create_user(email='other@example.com',
+                                 password='XXXXXXXXX')
         create_project(user=other_user)
         create_project(user=self.user)
 
@@ -108,3 +109,74 @@ class PrivateProjectApiTests(TestCase):
         for k, v in payload.items():
             self.assertEqual(getattr(project, k), v)
         self.assertEqual(project.user, self.user)
+
+    def test_partial_update(self):
+        """Test partial update of a project."""
+        original_title = 'Sample Project'
+        project = create_project(
+            user=self.user,
+            title=original_title
+        )
+
+        payload = {'title': 'New Project Title'}
+        url = detail_url(project.id)
+        res = self.client.patch(url, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        project.refresh_from_db()
+        self.assertEqual(project.title, payload['title'])
+        self.assertEqual(project.user, self.user)
+
+    def test_full_update(self):
+        """Test full update of project."""
+        original_title = 'Sample Project'
+        project = create_project(
+            user=self.user,
+            title=original_title
+        )
+
+        payload = {'title': 'New Project Title',
+                   'bodyText': 'New Description'}
+        url = detail_url(project.id)
+        res = self.client.put(url, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        project.refresh_from_db()
+        for k, v in payload.items():
+            self.assertEqual(getattr(project, k), v)
+        self.assertEqual(project.user, self.user)
+
+    def test_update_user_returns_error(self):
+        """Test changing the project user results in an error."""
+        new_user = create_user(email='user2@example.com',
+                               password='XXXXXXXXXXX')
+        project = create_project(user=self.user)
+
+        payload = {'user': new_user.id}
+        url = detail_url(project.id)
+        self.client.patch(url, payload)
+
+        project.refresh_from_db()
+        self.assertEqual(project.user, self.user)
+
+    def test_delete_project(self):
+        """Test deleting a project successful."""
+        project = create_project(user=self.user)
+
+        url = detail_url(project.id)
+        res = self.client.delete(url)
+
+        self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(Project.objects.filter(id=project.id).exists())
+
+    def test_delete_other_users_project_error(self):
+        """Test trying to delete another users project gives error."""
+        new_user = create_user(email='user2@example.com',
+                               password='XXXXXXXXXXX')
+        project = create_project(user=new_user)
+
+        url = detail_url(project.id)
+        res = self.client.delete(url)
+
+        self.assertEqual(res.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertTrue(Project.objects.filter(id=project.id).exists())
