@@ -26,3 +26,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
             return serializers.ProjectSerializer
 
         return self.serializer_class
+
+    def perform_create(self, serializer):
+        """Create a new project."""
+        serializer.save(user=self.request.user)
