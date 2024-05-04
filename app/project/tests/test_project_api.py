@@ -10,10 +10,15 @@ from rest_framework.test import APIClient
 
 from core.models import Project
 
-from project.serializers import ProjectSerializer
+from project.serializers import ProjectSerializer, ProjectDetailSerializer
 
 
 PROJECTS_URL = reverse('project:project-list')
+
+
+def detail_url(project_id):
+    """Create and return a project detail URL."""
+    return reverse('project:project-detail', args=[project_id])
 
 
 def create_project(user, **params):
@@ -78,4 +83,14 @@ class PrivateProjectApiTests(TestCase):
         projects = Project.objects.filter(user=self.user)
         serializer = ProjectSerializer(projects, many=True)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data, serializer.data)
+
+    def test_get_project_detail(self):
+        """Test get project detail."""
+        project = create_project(user=self.user)
+
+        url = detail_url(project.id)
+        res = self.client.get(url)
+
+        serializer = ProjectDetailSerializer(project)
         self.assertEqual(res.data, serializer.data)
