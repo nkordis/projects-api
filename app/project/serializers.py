@@ -13,3 +13,9 @@ class ProjectSerializer(serializers.ModelSerializer):
         model = Project
         fields = ("id", 'title', 'bodyText')
         read_only_fields = ('id',)
+
+
+class ProjectDetailSerializer(ProjectSerializer):
+    """Serializer for the project detail."""
+    class Meta(ProjectSerializer.Meta):
+        fields = ProjectSerializer.Meta.fields + ()
