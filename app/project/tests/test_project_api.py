@@ -224,3 +224,43 @@ class PrivateProjectApiTests(TestCase):
                 user=self.user
             ).exists()
             self.assertTrue(exists)
+
+    def test_create_tag_on_update(self):
+        """Test creating tag when updating a project."""
+        project = create_project(user=self.user)
+
+        payload = {'tags': [{'name': 'Python'}]}
+        url = detail_url(project.id)
+        res = self.client.patch(url, payload, format='json')
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        new_tag = Tag.objects.get(user=self.user, name='Python')
+        self.assertIn(new_tag, project.tags.all())
+
+    def test_update_project_assign_tag(self):
+        """Test assigning an existing tag when updating a project."""
+        tag_python = Tag.objects.create(user=self.user, name='Python')
+        project = create_project(user=self.user)
+        project.tags.add(tag_python)
+
+        tag_java = Tag.objects.create(user=self.user, name='Java')
+        payload = {'tags': [{'name': 'Java'}]}
+        url = detail_url(project.id)
+        res = self.client.patch(url, payload, format='json')
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertIn(tag_java, project.tags.all())
+        self.assertNotIn(tag_python, project.tags.all())
+
+    def test_clear_project_tags(self):
+        """Test clearing a project's tags."""
+        tag = Tag.objects.create(user=self.user, name='Python')
+        project = create_project(user=self.user)
+        project.tags.add(tag)
+
+        payload = {'tags': []}
+        url = detail_url(project.id)
+        res = self.client.patch(url, payload, format='json')
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(project.tags.count(), 0)
