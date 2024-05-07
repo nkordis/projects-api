@@ -8,7 +8,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from core.models import Project
+from core.models import Project, Tag
 
 from project.serializers import ProjectSerializer, ProjectDetailSerializer
 
@@ -180,3 +180,47 @@ class PrivateProjectApiTests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_404_NOT_FOUND)
         self.assertTrue(Project.objects.filter(id=project.id).exists())
+
+    def test_create_project_with_new_tags(self):
+        """Test creating a project with new tags."""
+        payload = {
+            'title': 'Sample Project',
+            'bodyText': 'Sample Description',
+            'tags': [{'name': 'Python'}, {'name': 'Java'}]
+        }
+        res = self.client.post(PROJECTS_URL, payload, format='json')
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        projects = Project.objects.filter(user=self.user)
+        self.assertEqual(projects.count(), 1)
+        project = projects[0]
+        self.assertEqual(project.tags.count(), 2)
+        for tag in payload['tags']:
+            exists = project.tags.filter(
+                name=tag['name'],
+                user=self.user
+            ).exists()
+            self.assertTrue(exists)
+
+    def test_create_project_with_existing_tags(self):
+        """Test creating a project with existing tag."""
+        tag_python = Tag.objects.create(user=self.user, name='Python')
+        payload = {
+            'title': 'Sample Project',
+            'bodyText': 'Sample Description',
+            'tags': [{'name': 'Python'}, {'name': 'Java'}]
+        }
+        res = self.client.post(PROJECTS_URL, payload, format='json')
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        projects = Project.objects.filter(user=self.user)
+        self.assertEqual(projects.count(), 1)
+        project = projects[0]
+        self.assertEqual(project.tags.count(), 2)
+        self.assertIn(tag_python, project.tags.all())
+        for tag in payload['tags']:
+            exists = project.tags.filter(
+                name=tag['name'],
+                user=self.user
+            ).exists()
+            self.assertTrue(exists)
