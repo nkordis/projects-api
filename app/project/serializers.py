@@ -24,11 +24,8 @@ class ProjectSerializer(serializers.ModelSerializer):
         fields = ("id", 'title', 'bodyText', 'tags')
         read_only_fields = ('id',)
 
-    def create(self, validated_data):
-        """Create a new project."""
-        tags = validated_data.pop('tags', [])
-        project = Project.objects.create(**validated_data)
-
+    def _get_or_create_tags(self, tags, project):
+        """Handle getting or creating tags as needed"""
         auth_user = self.context['request'].user
         for tag in tags:
             tag_obj, created = Tag.objects.get_or_create(
@@ -37,7 +34,27 @@ class ProjectSerializer(serializers.ModelSerializer):
             )
             project.tags.add(tag_obj)
 
+    def create(self, validated_data):
+        """Create a new project."""
+        tags = validated_data.pop('tags', [])
+        project = Project.objects.create(**validated_data)
+        self._get_or_create_tags(tags, project)
+
         return project
+
+    def update(self, instance, validated_data):
+        """Update a project."""
+        tags = validated_data.pop('tags', [])
+        if tags is not None:
+            instance.tags.clear()
+            if tags:
+                self._get_or_create_tags(tags, instance)
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        instance.save()
+        return instance
 
 
 class ProjectDetailSerializer(ProjectSerializer):
