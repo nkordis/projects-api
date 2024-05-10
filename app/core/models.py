@@ -54,6 +54,7 @@ class Project(models.Model):
     title = models.CharField(max_length=255)
     bodyText = models.TextField(blank=True)
     tags = models.ManyToManyField('Tag', blank=True)
+    links = models.ManyToManyField('Link', blank=True)
 
     def __str__(self):
         return self.title
@@ -69,3 +70,15 @@ class Tag(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class Link(models.Model):
+    """Links for projects"""
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE)
+    text = models.CharField(max_length=255)
+    href = models.URLField()
+
+    def __str__(self):
+        return self.text

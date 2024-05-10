@@ -74,3 +74,14 @@ class ModelTest(TestCase):
         tag = models.Tag.objects.create(user=user, name='Tag1')
 
         self.assertEqual(str(tag), tag.name)
+
+    def test_create_link(self):
+        """Test creating a link is successful"""
+        user = create_user()
+        link = models.Link.objects.create(
+            user=user,
+            text='Link1',
+            href='https://www.example.com',
+        )
+
+        self.assertEqual(str(link), link.text)
