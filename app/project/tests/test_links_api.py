@@ -94,3 +94,16 @@ class PrivateLinksApiTests(TestCase):
         link.refresh_from_db()
         self.assertEqual(link.text, payload['text'])
         self.assertEqual(link.href, payload['href'])
+
+    def test_delete_link(self):
+        """Test deleting a link."""
+        link = Link.objects.create(user=self.user,
+                                   text='Test link',
+                                   href='http://example.com')
+
+        url = detail_url(link.id)
+        res = self.client.delete(url)
+
+        self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
+        links = Link.objects.filter(user=self.user)
+        self.assertFalse(links.exists())
