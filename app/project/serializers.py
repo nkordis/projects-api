@@ -3,7 +3,16 @@ Serializers for the project API View.
 """
 from rest_framework import serializers
 
-from core.models import Project, Tag
+from core.models import Project, Tag, Link
+
+
+class LinkSerializer(serializers.ModelSerializer):
+    """Serializer for the links."""
+
+    class Meta:
+        model = Link
+        fields = ('id', 'text', 'href')
+        read_only_fields = ('id',)
 
 
 class TagSerializer(serializers.ModelSerializer):

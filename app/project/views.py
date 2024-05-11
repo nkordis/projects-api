@@ -5,7 +5,7 @@ from rest_framework import viewsets, mixins
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 
-from core.models import Project, Tag
+from core.models import Project, Tag, Link
 from project import serializers
 
 
@@ -45,3 +45,15 @@ class TagViewSet(mixins.DestroyModelMixin,
     def get_queryset(self):
         """Retrieve tags for authenticated user."""
         return self.queryset.filter(user=self.request.user).order_by('-name')
+
+
+class LinkViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+    """Manage links in the database."""
+    serializer_class = serializers.LinkSerializer
+    queryset = Link.objects.all()
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        """Retrieve links for authenticated user."""
+        return self.queryset.filter(user=self.request.user).order_by('-text')
