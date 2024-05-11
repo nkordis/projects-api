@@ -16,6 +16,11 @@ from project.serializers import LinkSerializer
 LINKS_URL = reverse('project:link-list')
 
 
+def detail_url(link_id):
+    """Create and return a link detail URL."""
+    return reverse('project:link-detail', args=[link_id])
+
+
 def create_user(email='user@example.com', password='testpass123'):
     """Create and return a user."""
     return get_user_model().objects.create_user(email=email, password=password)
@@ -74,3 +79,18 @@ class PrivateLinksApiTests(TestCase):
         self.assertEqual(res.data[0]['text'], link.text)
         self.assertEqual(res.data[0]['href'], link.href)
         self.assertEqual(res.data[0]['id'], link.id)
+
+    def test_update_link(self):
+        """Test updating a link."""
+        link = Link.objects.create(user=self.user,
+                                   text='Test link',
+                                   href='http://example.com')
+
+        payload = {'text': 'Updated link', 'href': 'http://example.com'}
+        url = detail_url(link.id)
+        res = self.client.patch(url, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        link.refresh_from_db()
+        self.assertEqual(link.text, payload['text'])
+        self.assertEqual(link.href, payload['href'])
