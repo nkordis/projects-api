@@ -47,7 +47,9 @@ class TagViewSet(mixins.DestroyModelMixin,
         return self.queryset.filter(user=self.request.user).order_by('-name')
 
 
-class LinkViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+class LinkViewSet(mixins.UpdateModelMixin,
+                  mixins.ListModelMixin,
+                  viewsets.GenericViewSet):
     """Manage links in the database."""
     serializer_class = serializers.LinkSerializer
     queryset = Link.objects.all()
