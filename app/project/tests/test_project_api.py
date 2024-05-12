@@ -8,7 +8,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from core.models import Project, Tag
+from core.models import Project, Tag, Link
 
 from project.serializers import ProjectSerializer, ProjectDetailSerializer
 
@@ -264,3 +264,51 @@ class PrivateProjectApiTests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(project.tags.count(), 0)
+
+    def test_create_project_with_new_links(self):
+        """Test creating a project with new links."""
+        payload = {
+            'title': 'Sample Project',
+            'bodyText': 'Sample Description',
+            'links': [{'text': 'GitHub', 'href': 'http://example.com'}]
+        }
+        res = self.client.post(PROJECTS_URL, payload, format='json')
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        projects = Project.objects.filter(user=self.user)
+        self.assertEqual(projects.count(), 1)
+        project = projects[0]
+        self.assertEqual(project.links.count(), 1)
+        for link in payload['links']:
+            exists = project.links.filter(
+                text=link['text'],
+                href=link['href'],
+                user=self.user
+            ).exists()
+            self.assertTrue(exists)
+
+    def test_create_project_with_existing_links(self):
+        """Test creating a project with existing link."""
+        link = Link.objects.create(user=self.user,
+                                   text='GitHub',
+                                   href='http://example.com')
+        payload = {
+            'title': 'Sample Project',
+            'bodyText': 'Sample Description',
+            'links': [{'text': 'GitHub', 'href': 'http://example.com'}]
+        }
+        res = self.client.post(PROJECTS_URL, payload, format='json')
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        projects = Project.objects.filter(user=self.user)
+        self.assertEqual(projects.count(), 1)
+        project = projects[0]
+        self.assertEqual(project.links.count(), 1)
+        self.assertIn(link, project.links.all())
+        for link in payload['links']:
+            exists = project.links.filter(
+                text=link['text'],
+                href=link['href'],
+                user=self.user
+            ).exists()
+            self.assertTrue(exists)
