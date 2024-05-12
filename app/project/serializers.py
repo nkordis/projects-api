@@ -27,10 +27,11 @@ class TagSerializer(serializers.ModelSerializer):
 class ProjectSerializer(serializers.ModelSerializer):
     """Serializer for the projects."""
     tags = TagSerializer(many=True, required=False)
+    links = LinkSerializer(many=True, required=False)
 
     class Meta:
         model = Project
-        fields = ("id", 'title', 'bodyText', 'tags')
+        fields = ("id", 'title', 'bodyText', 'tags', 'links')
         read_only_fields = ('id',)
 
     def _get_or_create_tags(self, tags, project):
@@ -43,11 +44,23 @@ class ProjectSerializer(serializers.ModelSerializer):
             )
             project.tags.add(tag_obj)
 
+    def _get_or_create_links(self, links, project):
+        """Handle getting or creating links as needed"""
+        auth_user = self.context['request'].user
+        for link in links:
+            link_obj, created = Link.objects.get_or_create(
+                user=auth_user,
+                **link
+            )
+            project.links.add(link_obj)
+
     def create(self, validated_data):
         """Create a new project."""
         tags = validated_data.pop('tags', [])
+        links = validated_data.pop('links', [])
         project = Project.objects.create(**validated_data)
         self._get_or_create_tags(tags, project)
+        self._get_or_create_links(links, project)
 
         return project
 
