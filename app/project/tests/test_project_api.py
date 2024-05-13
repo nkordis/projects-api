@@ -312,3 +312,51 @@ class PrivateProjectApiTests(TestCase):
                 user=self.user
             ).exists()
             self.assertTrue(exists)
+
+    def test_create_link_on_update(self):
+        """Test creating link when updating a project."""
+        project = create_project(user=self.user)
+
+        payload = {'links': [{'text': 'GitHub', 'href': 'http://example.com'}]}
+        url = detail_url(project.id)
+        res = self.client.patch(url, payload, format='json')
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        new_link = Link.objects.get(user=self.user,
+                                    text='GitHub',
+                                    href='http://example.com')
+        self.assertIn(new_link, project.links.all())
+
+    def test_update_project_assign_link(self):
+        """Test assigning an existing link when updating a project."""
+        link = Link.objects.create(user=self.user,
+                                   text='GitHub',
+                                   href='http://example.com')
+        project = create_project(user=self.user)
+        project.links.add(link)
+
+        link_other = Link.objects.create(user=self.user,
+                                         text='Other',
+                                         href='http://example.com')
+        payload = {'links': [{'text': 'Other', 'href': 'http://example.com'}]}
+        url = detail_url(project.id)
+        res = self.client.patch(url, payload, format='json')
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertIn(link_other, project.links.all())
+        self.assertNotIn(link, project.links.all())
+
+    def test_clear_project_links(self):
+        """Test clearing a project's links."""
+        link = Link.objects.create(user=self.user,
+                                   text='GitHub',
+                                   href='http://example.com')
+        project = create_project(user=self.user)
+        project.links.add(link)
+
+        payload = {'links': []}
+        url = detail_url(project.id)
+        res = self.client.patch(url, payload, format='json')
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(project.links.count(), 0)
