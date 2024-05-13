@@ -66,11 +66,16 @@ class ProjectSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         """Update a project."""
-        tags = validated_data.pop('tags', [])
+        tags = validated_data.pop('tags', None)
+        links = validated_data.pop('links', None)
         if tags is not None:
             instance.tags.clear()
             if tags:
                 self._get_or_create_tags(tags, instance)
+        if links is not None:
+            instance.links.clear()
+            if links:
+                self._get_or_create_links(links, instance)
 
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
