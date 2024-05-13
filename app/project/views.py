@@ -32,30 +32,29 @@ class ProjectViewSet(viewsets.ModelViewSet):
         serializer.save(user=self.request.user)
 
 
-class TagViewSet(mixins.DestroyModelMixin,
-                 mixins.UpdateModelMixin,
-                 mixins.ListModelMixin,
-                 viewsets.GenericViewSet):
+class BaseProjectAttrViewSet(mixins.DestroyModelMixin,
+                             mixins.UpdateModelMixin,
+                             mixins.ListModelMixin,
+                             viewsets.GenericViewSet):
+    """Base viewset for project attributes."""
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+
+class TagViewSet(BaseProjectAttrViewSet):
     """Manage tags in the database."""
     serializer_class = serializers.TagSerializer
     queryset = Tag.objects.all()
-    authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         """Retrieve tags for authenticated user."""
         return self.queryset.filter(user=self.request.user).order_by('-name')
 
 
-class LinkViewSet(mixins.DestroyModelMixin,
-                  mixins.UpdateModelMixin,
-                  mixins.ListModelMixin,
-                  viewsets.GenericViewSet):
+class LinkViewSet(BaseProjectAttrViewSet):
     """Manage links in the database."""
     serializer_class = serializers.LinkSerializer
     queryset = Link.objects.all()
-    authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         """Retrieve links for authenticated user."""
