@@ -87,4 +87,19 @@ class ProjectSerializer(serializers.ModelSerializer):
 class ProjectDetailSerializer(ProjectSerializer):
     """Serializer for the project detail."""
     class Meta(ProjectSerializer.Meta):
-        fields = ProjectSerializer.Meta.fields + ()
+        fields = ProjectSerializer.Meta.fields + ('image',)
+
+
+class ProjectImageSerializer(serializers.ModelSerializer):
+    """Serializer for uploading images to projects."""
+
+    class Meta:
+        model = Project
+        fields = ('id', 'image')
+        read_only_fields = ('id',)
+        extra_kwargs = {
+            'image': {
+                'required': True,
+                'allow_null': False
+            }
+        }
