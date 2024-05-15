@@ -8,7 +8,7 @@ from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from core.models import Tag
+from core.models import Tag, Project
 
 from project.serializers import TagSerializer
 
@@ -92,3 +92,42 @@ class PrivateTagsApiTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
         tags = Tag.objects.filter(user=self.user)
         self.assertFalse(tags.exists())
+
+    def test_filter_tags_assigned_to_projects(self):
+        """Test listing tags to those assigned to projects."""
+        tag1 = Tag.objects.create(user=self.user, name='Python')
+        tag2 = Tag.objects.create(user=self.user, name='Java')
+        project = Project.objects.create(
+            title='Project title',
+            bodyText='Project description',
+            user=self.user,
+        )
+        project.tags.add(tag1)
+
+        res = self.client.get(TAGS_URL, {'assigned_only': 1})
+
+        s1 = TagSerializer(tag1)
+        s2 = TagSerializer(tag2)
+        self.assertIn(s1.data, res.data)
+        self.assertNotIn(s2.data, res.data)
+
+    def test_filtered_tags_unique(self):
+        """Test filtered tags returns a unique list."""
+        tag = Tag.objects.create(user=self.user, name='Python')
+        Tag.objects.create(user=self.user, name='Java')
+        project1 = Project.objects.create(
+            title='Project title 1',
+            bodyText='Project description 1',
+            user=self.user,
+        )
+        project2 = Project.objects.create(
+            title='Project title 2',
+            bodyText='Project description 2',
+            user=self.user,
+        )
+        project1.tags.add(tag)
+        project2.tags.add(tag)
+
+        res = self.client.get(TAGS_URL, {'assigned_only': 1})
+
+        self.assertEqual(len(res.data), 1)

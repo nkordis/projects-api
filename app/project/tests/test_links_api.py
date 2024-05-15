@@ -8,7 +8,7 @@ from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from core.models import Link
+from core.models import Link, Project
 
 from project.serializers import LinkSerializer
 
@@ -107,3 +107,55 @@ class PrivateLinksApiTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
         links = Link.objects.filter(user=self.user)
         self.assertFalse(links.exists())
+
+    def test_filter_links_assigned_to_projects(self):
+        """Test listing links by assigned projects."""
+        link1 = Link.objects.create(
+            user=self.user,
+            text='Test link 1',
+            href='http://example.com'
+        )
+        link2 = Link.objects.create(
+            user=self.user,
+            text='Test link 2',
+            href='http://example.com'
+        )
+        project = Project.objects.create(
+            user=self.user,
+            title='Test project'
+        )
+        project.links.add(link1)
+
+        res = self.client.get(LINKS_URL, {'assigned_only': 1})
+
+        s1 = LinkSerializer(link1)
+        s2 = LinkSerializer(link2)
+        self.assertIn(s1.data, res.data)
+        self.assertNotIn(s2.data, res.data)
+
+    def test_filtered_links_unique(self):
+        """Test filtered links returns a unique list."""
+        link = Link.objects.create(
+            user=self.user,
+            text='Test link 1',
+            href='http://example.com'
+        )
+        Link.objects.create(
+            user=self.user,
+            text='Test link 2',
+            href='http://example.com'
+        )
+        project1 = Project.objects.create(
+            user=self.user,
+            title='Test project 1'
+        )
+        project2 = Project.objects.create(
+            user=self.user,
+            title='Test project 2'
+        )
+        project1.links.add(link)
+        project2.links.add(link)
+
+        res = self.client.get(LINKS_URL, {'assigned_only': 1})
+
+        self.assertEqual(len(res.data), 1)
