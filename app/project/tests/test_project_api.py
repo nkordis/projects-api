@@ -371,6 +371,49 @@ class PrivateProjectApiTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(project.links.count(), 0)
 
+    def test_filter_by_tags(self):
+        """Test filtering projects by tags."""
+        project1 = create_project(user=self.user, title='Python')
+        project2 = create_project(user=self.user, title='Java')
+        tag1 = Tag.objects.create(user=self.user, name='Python')
+        tag2 = Tag.objects.create(user=self.user, name='Java')
+        project1.tags.add(tag1)
+        project2.tags.add(tag2)
+        project3 = create_project(user=self.user, title='Other')
+
+        res = self.client.get(PROJECTS_URL, {'tags': f'{tag1.id},{tag2.id}'})
+
+        s1 = ProjectSerializer(project1)
+        s2 = ProjectSerializer(project2)
+        s3 = ProjectSerializer(project3)
+        self.assertIn(s1.data, res.data)
+        self.assertIn(s2.data, res.data)
+        self.assertNotIn(s3.data, res.data)
+
+    def test_filter_by_links(self):
+        """Test filtering projects by links."""
+        project1 = create_project(user=self.user, title='Python')
+        project2 = create_project(user=self.user, title='Java')
+        link1 = Link.objects.create(user=self.user,
+                                    text='GitHub',
+                                    href='http://example.com')
+        link2 = Link.objects.create(user=self.user,
+                                    text='Other',
+                                    href='http://example.com')
+        project1.links.add(link1)
+        project2.links.add(link2)
+        project3 = create_project(user=self.user, title='Other')
+
+        res = self.client.get(PROJECTS_URL,
+                              {'links': f'{link1.id}, {link2.id}'})
+
+        s1 = ProjectSerializer(project1)
+        s2 = ProjectSerializer(project2)
+        s3 = ProjectSerializer(project3)
+        self.assertIn(s1.data, res.data)
+        self.assertIn(s2.data, res.data)
+        self.assertNotIn(s3.data, res.data)
+
 
 class ImageUploadTests(TestCase):
     """Tests for the image upload API."""
