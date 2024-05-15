@@ -1,6 +1,12 @@
 """
 Views for the project API.
 """
+from drf_spectacular.utils import (
+    extend_schema_view,
+    extend_schema,
+    OpenApiParameter,
+    OpenApiTypes,
+)
 from rest_framework import viewsets, mixins, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -11,6 +17,22 @@ from core.models import Project, Tag, Link
 from project import serializers
 
 
+@extend_schema_view(
+    list=extend_schema(
+        parameters=[
+            OpenApiParameter(
+                'tags',
+                OpenApiTypes.STR,
+                description='Comma separated list of tag IDs to filter',
+            ),
+            OpenApiParameter(
+                'links',
+                OpenApiTypes.STR,
+                description='Comma separated list of link IDs to filter',
+            ),
+        ]
+    )
+)
 class ProjectViewSet(viewsets.ModelViewSet):
     """View for manage project APIs."""
     serializer_class = serializers.ProjectDetailSerializer
@@ -18,9 +40,24 @@ class ProjectViewSet(viewsets.ModelViewSet):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
+    def _params_to_ints(self, qs):
+        """Convert a list of string IDs to a list of integers."""
+        return [int(str_id) for str_id in qs.split(',')]
+
     def get_queryset(self):
         """Retrieve projects for authenticated user."""
-        return self.queryset.filter(user=self.request.user).order_by('-id')
+        tags = self.request.query_params.get('tags')
+        links = self.request.query_params.get('links')
+        queryset = self.queryset
+        if tags:
+            tag_ids = self._params_to_ints(tags)
+            queryset = queryset.filter(tags__id__in=tag_ids)
+        if links:
+            link_ids = self._params_to_ints(links)
+            queryset = queryset.filter(links__id__in=link_ids)
+
+        queryset = queryset.filter(user=self.request.user).order_by('-id')
+        return queryset.distinct()
 
     def get_serializer_class(self):
         """Return the serializer class for request."""
