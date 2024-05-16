@@ -85,6 +85,17 @@ class ProjectViewSet(viewsets.ModelViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@extend_schema_view(
+    list=extend_schema(
+        parameters=[
+            OpenApiParameter(
+                'assigned_only',
+                OpenApiTypes.INT, enum=[0, 1],
+                description='Filter by items assigned to user',
+            ),
+        ]
+    )
+)
 class BaseProjectAttrViewSet(mixins.DestroyModelMixin,
                              mixins.UpdateModelMixin,
                              mixins.ListModelMixin,
@@ -101,7 +112,16 @@ class TagViewSet(BaseProjectAttrViewSet):
 
     def get_queryset(self):
         """Retrieve tags for authenticated user."""
-        return self.queryset.filter(user=self.request.user).order_by('-name')
+        assigned_only = bool(
+            int(self.request.query_params.get('assigned_only', 0))
+        )
+        # Start with the queryset filtered by the user
+        queryset = self.queryset.filter(user=self.request.user)
+        # Apply filter for assigned_only if specified
+        if assigned_only:
+            queryset = queryset.filter(project__isnull=False)
+        # Return the filtered queryset ordered by name and distinct
+        return queryset.order_by('-name').distinct()
 
 
 class LinkViewSet(BaseProjectAttrViewSet):
@@ -111,4 +131,13 @@ class LinkViewSet(BaseProjectAttrViewSet):
 
     def get_queryset(self):
         """Retrieve links for authenticated user."""
-        return self.queryset.filter(user=self.request.user).order_by('-text')
+        assigned_only = bool(
+            int(self.request.query_params.get('assigned_only', 0))
+        )
+        # Start with the queryset filtered by the user
+        queryset = self.queryset.filter(user=self.request.user)
+        # Apply filter for assigned_only if specified
+        if assigned_only:
+            queryset = queryset.filter(project__isnull=False)
+        # Return the filtered queryset ordered by text and distinct
+        return queryset.order_by('-text').distinct()
