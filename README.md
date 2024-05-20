@@ -4,9 +4,9 @@
 
 An API designed to dynamically manage and display a portfolio of software projects.
 
-![projects-api-1](docs/images/projects-api-1.png)
-![projects-api-2](docs/images/projects-api-2.png)
-![projects-api-3](docs/images/projects-api-3.png)
+![projects-api-1](./docs/images/projects-api-1.png)
+![projects-api-2](./docs/images/projects-api-2.png)
+![projects-api-3](./docs/images/projects-api-3.png)
 
 ## Description
 
