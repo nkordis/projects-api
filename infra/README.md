@@ -75,5 +75,17 @@ Apply the Terraform configuration to create the defined infrastructure.
 docker compose run --rm terraform -chdir=<directory> apply
 ```
 
+### 8. Get Terraform Outputs
+Retrieve the outputs from the Terraform state.
 
+```sh
+docker compose run --rm terraform -chdir=<directory> output
+```
+
+### 9. Retrieve Sensitive Outputs
+Retrieve the sensitive output values from the Terraform state.
+
+```sh
+docker compose run --rm terraform -chdir=<directory> output cd_user_access_key_secret
+```
 
