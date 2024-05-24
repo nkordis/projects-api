@@ -1,6 +1,6 @@
 # Terraform Setup and Initialization
 
-This README provides step-by-step instructions for setting up and running Terraform commands for the setup process using Docker Compose and `aws-vault` for managing AWS credentials.
+This README provides step-by-step instructions for setting up and running Terraform commands for both the setup and deploy stages using Docker Compose and aws-vault for managing AWS credentials.
 
 ## Prerequisites
 
@@ -8,12 +8,12 @@ This README provides step-by-step instructions for setting up and running Terraf
 - `aws-vault` installed and configured
 - AWS credentials configured in `aws-vault`
 
-### 1. Navigate to the Setup Directory
+### 1. Navigate to the Desired Directory
 
-Open your terminal and navigate to the setup directory.
+Open your terminal and navigate to either the setup or deploy directory, depending on which stage you want to work on.
 
 ```sh
-cd projects-api/infra/setup
+cd projects-api/infra/<directory>
 ```
 
 ### 2. Authenticate with AWS Using aws-vault
@@ -37,10 +37,10 @@ You will be prompted to enter your MFA token from your MFA device.
 
 ### 3. Initialize Terraform
 
-Initialize the Terraform setup using Docker Compose.
+Initialize the Terraform using Docker Compose.
 
 ```sh
-docker compose run --rm terraform -chdir=setup init
+docker compose run --rm terraform -chdir=<directory> init
 ```
 
 ### 4. Format Terraform Code
@@ -48,7 +48,7 @@ docker compose run --rm terraform -chdir=setup init
 Format your Terraform code to ensure consistency.
 
 ```sh
-docker compose run --rm terraform -chdir=setup fmt
+docker compose run --rm terraform -chdir=<directory>fmt
 ```
 
 ### 5. Validate Terraform Configuration
@@ -56,7 +56,7 @@ docker compose run --rm terraform -chdir=setup fmt
 Validate the Terraform configuration to ensure it is correct.
 
 ```sh
-docker compose run --rm terraform -chdir=setup validate
+docker compose run --rm terraform -chdir=<directory> validate
 ```
 
 ### 6. Plan Terraform Changes
@@ -64,7 +64,7 @@ docker compose run --rm terraform -chdir=setup validate
 Generate and review the execution plan for Terraform changes.
 
 ```sh
-docker compose run --rm terraform -chdir=setup plan
+docker compose run --rm terraform -chdir=<directory> plan
 ```
 
 ### 7. Apply Terraform Configuration
@@ -72,7 +72,7 @@ docker compose run --rm terraform -chdir=setup plan
 Apply the Terraform configuration to create the defined infrastructure.
 
 ```sh
-docker compose run --rm terraform -chdir=setup apply
+docker compose run --rm terraform -chdir=<directory> apply
 ```
 
 
