@@ -7,10 +7,10 @@ terraform {
   }
 
   backend "s3" {
-    bucket = "projects-api-terraform-state"
-    key    = "tf-state-setup"
-    region = "us-east-1"
-    encrypt = true
+    bucket         = "projects-api-terraform-state"
+    key            = "tf-state-setup"
+    region         = "us-east-1"
+    encrypt        = true
     dynamodb_table = "projects-api-terraform-lock"
   }
 }
