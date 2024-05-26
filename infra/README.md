@@ -89,3 +89,9 @@ Retrieve the sensitive output values from the Terraform state.
 docker compose run --rm terraform -chdir=<directory> output cd_user_access_key_secret
 ```
 
+### 10. Destroy Infrastructure
+To destroy the infrastructure created by Terraform, use the following command:
+
+```sh
+docker compose run --rm terraform -chdir=<directory> destroy
+```
