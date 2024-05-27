@@ -1,6 +1,6 @@
 # Terraform Setup and Initialization
 
-This README provides step-by-step instructions for setting up and running Terraform commands for both the setup and deploy stages using Docker Compose and aws-vault for managing AWS credentials.
+This README provides step-by-step instructions for setting up and running Terraform commands for both the setup and deploy stages using Docker Compose and aws-vault for managing AWS credentials. This project uses Terraform to set up various AWS resources, including S3 for state storage, DynamoDB for state locking, and ECR for Docker images. The setup commands described below should be run by administrators to configure these resources. The deployment commands will be run from the CI/CD pipeline.
 
 ## Prerequisites
 
@@ -10,10 +10,10 @@ This README provides step-by-step instructions for setting up and running Terraf
 
 ### 1. Navigate to the Desired Directory
 
-Open your terminal and navigate to either the setup or deploy directory, depending on which stage you want to work on.
+Open your terminal and navigate to either the infra directory.
 
 ```sh
-cd projects-api/infra/<directory>
+cd projects-api/infra
 ```
 
 ### 2. Authenticate with AWS Using aws-vault
