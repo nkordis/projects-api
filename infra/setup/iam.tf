@@ -135,6 +135,7 @@ data "aws_iam_policy_document" "ec2" {
       "ec2:AttachInternetGateway",
       "ec2:ModifyVpcAttribute",
       "ec2:RevokeSecurityGroupIngress",
+      "ec2:DescribeAvailabilityZones"
     ]
     resources = ["*"]
   }
@@ -167,8 +168,7 @@ data "aws_iam_policy_document" "rds" {
       "rds:DeleteDBInstance",
       "rds:ListTagsForResource",
       "rds:ModifyDBInstance",
-      "rds:AddTagsToResource",
-      "iam:CreateServiceLinkedRole"
+      "rds:AddTagsToResource"
     ]
     resources = ["*"]
   }
